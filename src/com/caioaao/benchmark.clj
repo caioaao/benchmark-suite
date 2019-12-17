@@ -1,5 +1,7 @@
 (ns com.caioaao.benchmark
-  (:require [criterium.core :as criterium]))
+  (:require [criterium.core :as criterium]
+            [clojure.string :as str])
+  (:import [java.io BufferedReader StringReader]))
 
 (def ^:dynamic *samples-multiplier* 1)
 (def ^:dynamic *indent-count* 0)
@@ -11,15 +13,23 @@
   `(binding [*indent-count* (inc *indent-count*)]
      ~@body))
 
+(defn- split-lines
+  "Preserves empty results in the end (so that (str/join \"\n\" (split-lines s)) = s)"
+  [s]
+  (line-seq (BufferedReader. (StringReader. (str s "\n")))))
+
+(defn- indented-str [s]
+  (->> (split-lines s)
+       (map (partial apply str) (repeatedly get-indent))
+       (str/join "\n")))
+
 (defn- indented-print [& more]
   (binding [*print-readably* nil]
-    (apply pr (get-indent))
-    (apply pr more)))
+    (apply pr (map indented-str more))))
 
 (defn- indented-println [& more]
   (binding [*print-readably* nil]
-    (apply pr (get-indent))
-    (apply prn more)))
+    (apply prn (map indented-str more))))
 
 (defmacro ^:private with-indent-control [& body]
   `(with-redefs [print   indented-print
@@ -42,10 +52,10 @@
       (println (str "Running benchmark " conf-sym))
       (with-inc-indent
         (doseq [[dataset-k dataset-conf] datasets]
-          (println (str "Dataset " dataset-k))
+          (println (str "\nDataset " dataset-k))
           (with-inc-indent
             (doseq [[sample-k sample-base] (::sample-sizes dataset-conf)]
-              (println (str "Sample size " (samples sample-base) " (name = "sample-k ", base =" sample-base ")"))
+              (println (str "\nSample size " (samples sample-base) " (name = "sample-k ", base =" sample-base ")"))
               (let [runner-fn (runner (-> ((::dataset-fn dataset-conf))
                                           (->> (take (samples sample-base)))
                                           doall))]
@@ -59,3 +69,8 @@
   [config & {:keys [samples-multiplier report-opts]
              :as   opts}]
   `((config->runner '~config (merge *default-report-opts* ~report-opts) ~config) ~opts))
+
+(run-benchmark! {::datasets {:bla {::dataset-fn   (constantly [1 2 3])
+                                   ::sample-sizes {:small 1
+                                                   :large 3}}}
+                 ::runner   #(constantly (count %))})
