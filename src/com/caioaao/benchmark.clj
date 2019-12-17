@@ -19,7 +19,7 @@
 (defn- indented-println [& more]
   (binding [*print-readably* nil]
     (apply pr (get-indent))
-    (apply pr more)))
+    (apply prn more)))
 
 (defmacro ^:private with-indent-control [& body]
   `(with-redefs [print   indented-print
@@ -46,15 +46,16 @@
           (with-inc-indent
             (doseq [[sample-k sample-base] (::sample-sizes dataset-conf)]
               (println (str "Sample size " (samples sample-base) " (name = "sample-k ", base =" sample-base ")"))
-              (criterium/report-result
-               (-> ((::dataset-fn dataset-conf))
-                   (->> (take (samples sample-base)))
-                   ((runner) opts))
-               report-opts))))))))
+              (let [selected-data (-> ((::dataset-fn dataset-conf))
+                                      (->> (take (samples sample-base))))
+                    runner-fn (runner)]
+                (criterium/report-result
+                 (criterium/benchmark (runner-fn selected-data) opts)
+                 report-opts)))))))))
 
 (def ^:dynamic *default-report-opts* {:verbose true})
 
 (defmacro run-benchmark!
   [config & {:keys [samples-multiplier report-opts]
              :as   opts}]
-  `((config->runner '~config (merge ~*default-report-opts* ~report-opts) ~config) ~opts))
+  `((config->runner '~config (merge *default-report-opts* ~report-opts) ~config) ~opts))
