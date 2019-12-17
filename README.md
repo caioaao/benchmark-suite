@@ -7,5 +7,6 @@ A **very** simple benchmark suite.
 - [ ] Discover and run benchmarks like a test runner
 - [ ] Support benchmarks that don't need datasets
 - [ ] Benchmark tests (comparing results to a baseline - goal is to protect projects from performance regressions)
+- [ ] API to run only a subset of benchmarks
 - [ ] kaocha runner?
 
