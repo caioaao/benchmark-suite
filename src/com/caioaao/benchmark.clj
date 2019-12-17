@@ -46,12 +46,11 @@
           (with-inc-indent
             (doseq [[sample-k sample-base] (::sample-sizes dataset-conf)]
               (println (str "Sample size " (samples sample-base) " (name = "sample-k ", base =" sample-base ")"))
-              (let [selected-data (-> ((::dataset-fn dataset-conf))
-                                      (->> (take (samples sample-base)))
-                                      doall)
-                    runner-fn (runner)]
+              (let [runner-fn (runner (-> ((::dataset-fn dataset-conf))
+                                          (->> (take (samples sample-base)))
+                                          doall))]
                 (criterium/report-result
-                 (criterium/benchmark (runner-fn selected-data) opts)
+                 (criterium/benchmark (runner-fn) opts)
                  report-opts)))))))))
 
 (def ^:dynamic *default-report-opts* {:verbose true})

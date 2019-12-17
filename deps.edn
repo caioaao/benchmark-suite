@@ -5,6 +5,11 @@
   org.clojure/spec.alpha {:mvn/version "0.2.176"}}
  :aliases {:pack {:extra-deps {pack/pack.alpha {:git/url "https://github.com/juxt/pack.alpha.git"
                                                 :sha "d9023b24c3d589ba6ebc66c5a25c0826ed28ead5"}}
-                  :main-opts ["-m"]}
+                  :main-opts ["-m" "mach.pack.alpha.skinny" "--no-libs" "--project-path"
+                              "target/benchmark-suite.jar"]}
            :deploy {:extra-deps {deps-deploy {:mvn/version "RELEASE"}}
-                    :main-opts  ["-m" "deps-deploy.deps-deploy" "deploy" "target/benchmark-suite.jar"]}}}
+                    :main-opts  ["-m" "deps-deploy.deps-deploy" "deploy"
+                                 "target/benchmark-suite.jar"]}
+           :install {:extra-deps {deps-deploy {:mvn/version "RELEASE"}}
+                     :main-opts  ["-m" "deps-deploy.deps-deploy" "install"
+			                      "target/benchmark-suite.jar"]}}}
