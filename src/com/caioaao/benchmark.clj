@@ -47,7 +47,8 @@
             (doseq [[sample-k sample-base] (::sample-sizes dataset-conf)]
               (println (str "Sample size " (samples sample-base) " (name = "sample-k ", base =" sample-base ")"))
               (let [selected-data (-> ((::dataset-fn dataset-conf))
-                                      (->> (take (samples sample-base))))
+                                      (->> (take (samples sample-base)))
+                                      doall)
                     runner-fn (runner)]
                 (criterium/report-result
                  (criterium/benchmark (runner-fn selected-data) opts)
